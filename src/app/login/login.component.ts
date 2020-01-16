@@ -18,7 +18,7 @@ export class LoginComponent implements OnInit {
   }
 
   sendUsername() {
-    this.http.post<{hash: string}>('http://localhost:3000/login/', { username: this.username })
+    this.http.post<{hash: string}>('http://localhost:3000/login/', { username: this.username }) //server: register player and return hash
       .pipe(catchError(() => [{ hash: 'asdf' }]))
       .subscribe(response => {
         window.localStorage.setItem('hash', response.hash);
