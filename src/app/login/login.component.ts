@@ -1,7 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
-import { catchError } from 'rxjs/operators';
+import { LoginService } from '../services/login.service';
 
 @Component({
   selector: 'app-login',
@@ -11,19 +9,14 @@ import { catchError } from 'rxjs/operators';
 export class LoginComponent implements OnInit {
   public username: string;
 
-  constructor(private http: HttpClient, private router: Router) {
+  constructor(private loginService: LoginService) {
   }
 
   ngOnInit() {
-  }
+  } 
 
   sendUsername() {
-    this.http.post<{hash: string}>('http://localhost:3000/login/', { username: this.username }) //server: register player and return hash
-      .pipe(catchError(() => [{ hash: 'asdf' }]))
-      .subscribe(response => {
-        window.localStorage.setItem('hash', response.hash);
-        this.router.navigate(['/game']);
-      });
+    this.loginService.sendUsername(this.username);
   }
 
 }

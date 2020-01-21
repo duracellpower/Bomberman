@@ -11,7 +11,14 @@ type Player = {
   x: number;
   y: number;
 }
-type Playground = FieldElement[][];
+type Playground = FieldElement[][]; // from server
+
+/*
+[
+  [null, { x: 1, y: 0, type: 'Wall' }, null...],
+  [null, { x: 1, y: 0, type: 'Wall' }, null...],
+]
+*/
 
 const PLAYGROUND_ROWS = 20;
 const PLAYGROUND_COLUMNS = 20;
