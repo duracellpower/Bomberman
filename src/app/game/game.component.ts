@@ -11,7 +11,10 @@ type Player = {
   x: number;
   y: number;
 }
-type Playground = FieldElement[][]; // from server
+type Playground = {
+  fields: FieldElement[][]; // from server
+  players: Player[];
+}
 
 /*
 [
@@ -33,8 +36,7 @@ const FIELD_HEIGHT = PLAYGROUND_HEIGHT / PLAYGROUND_ROWS;
   styleUrls: ['./game.component.scss']
 })
 export class GameComponent implements AfterViewInit {
-  private playground: Playground = [];
-  private players: Player[] = [];
+  private playground: Playground = { fields: [], players: [] };
   public width = PLAYGROUND_WIDTH;
   public height = PLAYGROUND_HEIGHT;
 
@@ -50,48 +52,48 @@ export class GameComponent implements AfterViewInit {
   }
 
   // Mock game
-  initGame() {
+  private initGame() {
     for (let y = 0; y < PLAYGROUND_ROWS; y++) {
-      this.playground[y] = [];
+      this.playground.fields[y] = [];
       for (let x = 0; x < PLAYGROUND_COLUMNS; x++) {
         if (x === 0 && y === 0) {
-          this.players.push({
+          this.playground.players.push({
             username: 'player1', x, y, color: 'blue'
           });
         }
         else if (x === PLAYGROUND_COLUMNS - 1 && y === 0) {
-          this.players.push({
+          this.playground.players.push({
             username: 'player2', x, y, color: 'red'
           });
         }
         else if (x === 0 && y === PLAYGROUND_ROWS - 1) {
-          this.players.push({
+          this.playground.players.push({
             username: 'player3', x, y, color: 'yellow'
           });
         }
         else if (x === PLAYGROUND_COLUMNS - 1 && y === PLAYGROUND_ROWS - 1){
-          this.players.push({
+          this.playground.players.push({
             username: 'player4', x, y, color: 'green'
           });
         }
 
-        this.playground[y][x] = null;
+        this.playground.fields[y][x] = null;
         if (x % 3 === 0 && y % 3 === 0 && x !== 0 && y !== 0) {
-          this.playground[y][x] = {
+          this.playground.fields[y][x] = {
             x, y, type: 'Wall'
           }
         }
         else if (x % 2 === 0 && y % 2 === 0 && x !== 0 && y !== 0) {
-          this.playground[y][x] = {
+          this.playground.fields[y][x] = {
             x, y, type: 'SoftWall'
           }
         }
       }
     }
-    console.log(this.playground);
+    console.log(this.playground.fields);
   }
 
-  drawGame() {
+  private drawGame() {
     const ctx = this.canvas.nativeElement.getContext('2d');
     const wallImg = new Image();
     wallImg.src = '/assets/wall.png';
@@ -101,13 +103,13 @@ export class GameComponent implements AfterViewInit {
     for (let y = 0; y < PLAYGROUND_ROWS; y++) {
       for (let x = 0; x < PLAYGROUND_COLUMNS; x++) {
         console.log('WALL', x, y, FIELD_WIDTH)
-        if (this.playground[y][x] !== null) {
-          if (this.playground[y][x].type === 'Wall') {
+        if (this.playground.fields[y][x] !== null) {
+          if (this.playground.fields[y][x].type === 'Wall') {
             console.log('WALL', x, y, FIELD_WIDTH)
             ctx.fillStyle = 'darkgray';
             ctx.fillRect(x * FIELD_WIDTH, y * FIELD_HEIGHT, FIELD_WIDTH, FIELD_HEIGHT);
           }
-          else if (this.playground[y][x].type === 'SoftWall') {
+          else if (this.playground.fields[y][x].type === 'SoftWall') {
             ctx.fillStyle = 'gray';
             ctx.fillRect(x * FIELD_WIDTH, y * FIELD_HEIGHT, FIELD_WIDTH, FIELD_HEIGHT);
           }
