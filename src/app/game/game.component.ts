@@ -99,6 +99,7 @@ export class GameComponent implements AfterViewInit {
     wallImg.src = '/assets/wall.png';
     const softWallImg = new Image();
     softWallImg.src = '/assets/soft-wall.png';
+    // Bilder evtl mit drawImage einfügen https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
 
     for (let y = 0; y < PLAYGROUND_ROWS; y++) {
       for (let x = 0; x < PLAYGROUND_COLUMNS; x++) {
