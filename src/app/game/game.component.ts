@@ -1,122 +1,125 @@
-import { Component, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, ViewChild, ElementRef, AfterViewInit } from "@angular/core";
 
-type FieldElement = {
-  x: number;
-  y: number;
-  type: 'Wall' | 'SoftWall';
-}
-type Player = {
-  username: string;
-  color: string;
-  x: number;
-  y: number;
-}
-type Playground = {
-  fields: FieldElement[][]; // from server
-  players: Player[];
-}
+import { Playground } from '../types';
+import { PLAYGROUND_WIDTH, PLAYGROUND_HEIGHT, PLAYGROUND_COLUMNS, PLAYGROUND_ROWS, FIELD_HEIGHT, FIELD_WIDTH } from '../settings';
 
-/*
-[
-  [null, { x: 1, y: 0, type: 'Wall' }, null...],
-  [null, { x: 1, y: 0, type: 'Wall' }, null...],
-]
-*/
-
-const PLAYGROUND_ROWS = 20;
-const PLAYGROUND_COLUMNS = 20;
-const PLAYGROUND_WIDTH = 400;
-const PLAYGROUND_HEIGHT = 400;
-const FIELD_WIDTH = PLAYGROUND_WIDTH / PLAYGROUND_COLUMNS;
-const FIELD_HEIGHT = PLAYGROUND_HEIGHT / PLAYGROUND_ROWS;
 
 @Component({
-  selector: 'app-game',
-  templateUrl: './game.component.html',
-  styleUrls: ['./game.component.scss']
+    selector: "app-game",
+    templateUrl: "./game.component.html",
+    styleUrls: ["./game.component.scss"]
 })
 export class GameComponent implements AfterViewInit {
-  private playground: Playground = { fields: [], players: [] };
-  public width = PLAYGROUND_WIDTH;
-  public height = PLAYGROUND_HEIGHT;
+    private playground: Playground = { fields: [], players: [] };
+    public width = PLAYGROUND_WIDTH;
+    public height = PLAYGROUND_HEIGHT;
 
-  @ViewChild('canvas', { static: true }) private canvas: ElementRef<HTMLCanvasElement>;
+    @ViewChild("canvas", { static: true }) private canvas: ElementRef<
+        HTMLCanvasElement
+    >;
 
-  constructor() {
-    console.log('HASH', window.localStorage.getItem('hash'));
-    this.initGame();
-  }
-  
-  ngAfterViewInit() {
-    this.drawGame();
-  }
+    constructor() {
+        const hash = window.localStorage.getItem("hash");
 
-  // Mock game
-  private initGame() {
-    for (let y = 0; y < PLAYGROUND_ROWS; y++) {
-      this.playground.fields[y] = [];
-      for (let x = 0; x < PLAYGROUND_COLUMNS; x++) {
-        if (x === 0 && y === 0) {
-          this.playground.players.push({
-            username: 'player1', x, y, color: 'blue'
-          });
-        }
-        else if (x === PLAYGROUND_COLUMNS - 1 && y === 0) {
-          this.playground.players.push({
-            username: 'player2', x, y, color: 'red'
-          });
-        }
-        else if (x === 0 && y === PLAYGROUND_ROWS - 1) {
-          this.playground.players.push({
-            username: 'player3', x, y, color: 'yellow'
-          });
-        }
-        else if (x === PLAYGROUND_COLUMNS - 1 && y === PLAYGROUND_ROWS - 1){
-          this.playground.players.push({
-            username: 'player4', x, y, color: 'green'
-          });
-        }
 
-        this.playground.fields[y][x] = null;
-        if (x % 3 === 0 && y % 3 === 0 && x !== 0 && y !== 0) {
-          this.playground.fields[y][x] = {
-            x, y, type: 'Wall'
-          }
-        }
-        else if (x % 2 === 0 && y % 2 === 0 && x !== 0 && y !== 0) {
-          this.playground.fields[y][x] = {
-            x, y, type: 'SoftWall'
-          }
-        }
-      }
+        this.initGame();
+
+        document.addEventListener("keypress", ev => {
+            switch (ev.keyCode) {
+                case 87: // UP
+                    this.movePlayer(hash, { x: 0, y: -1 });
+                    break;
+                case 68: // RIGHT
+                    this.movePlayer(hash, { x: 1, y: 0 });
+                    break;
+                case 83: // DOWN
+                    this.movePlayer(hash, { x: 0, y: 1 });
+                    break;
+                case 65: // LEFT
+                    this.movePlayer(hash, { x: -1, y: 0 });
+                    break;
+            }
+            console.log("moving?", ev.keyCode);
+            this.drawGame();
+        });
     }
-    console.log(this.playground.fields);
-  }
 
-  private drawGame() {
-    const ctx = this.canvas.nativeElement.getContext('2d');
-    const wallImg = new Image();
-    wallImg.src = '/assets/wall.png';
-    const softWallImg = new Image();
-    softWallImg.src = '/assets/soft-wall.png';
-    // Bilder evtl mit drawImage einfügen https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
-
-    for (let y = 0; y < PLAYGROUND_ROWS; y++) {
-      for (let x = 0; x < PLAYGROUND_COLUMNS; x++) {
-        console.log('WALL', x, y, FIELD_WIDTH)
-        if (this.playground.fields[y][x] !== null) {
-          if (this.playground.fields[y][x].type === 'Wall') {
-            console.log('WALL', x, y, FIELD_WIDTH)
-            ctx.fillStyle = 'darkgray';
-            ctx.fillRect(x * FIELD_WIDTH, y * FIELD_HEIGHT, FIELD_WIDTH, FIELD_HEIGHT);
-          }
-          else if (this.playground.fields[y][x].type === 'SoftWall') {
-            ctx.fillStyle = 'gray';
-            ctx.fillRect(x * FIELD_WIDTH, y * FIELD_HEIGHT, FIELD_WIDTH, FIELD_HEIGHT);
-          }
-        }
-      }
+    ngAfterViewInit() {
+        this.drawGame();
     }
-  }
 
+    private movePlayer(hash: string, direction: { x: number; y: number }) {
+        const i = this.playground.players.findIndex(
+            player => player.hash === hash
+        );
+        const x = this.playground.players[i].x + direction.x;
+        const y = this.playground.players[i].y + direction.y;
+        if (this.isInPlayground(x, y) && !this.collidesWithPlayer(hash, x, y) && !this.collidesWithWall(x, y)) {
+            this.playground.players[i].x = x;
+            this.playground.players[i].y = y;
+        }
+    }
+    private isInPlayground(x: number, y: number) {
+        return (
+            x >= 0 && x < PLAYGROUND_COLUMNS && y >= 0 && y < PLAYGROUND_ROWS
+        );
+    }
+    private collidesWithWall(x: number, y: number) {
+        return this.playground.fields[y][x] !== null;
+    }
+    private collidesWithPlayer(current: string, x: number, y: number) {
+        for (let i = 0; i < this.playground.players.length; i++) {
+            const player = this.playground.players[i];
+            if (player.hash === current) {
+                continue;
+            }
+            if (player.x === x && player.y === y) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private drawGame() {
+        const ctx = this.canvas.nativeElement.getContext("2d");
+        ctx.clearRect(0, 0, PLAYGROUND_WIDTH, PLAYGROUND_HEIGHT);
+        const wallImg = new Image();
+        wallImg.src = "/assets/wall.png";
+        const softWallImg = new Image();
+        softWallImg.src = "/assets/soft-wall.png";
+
+        for (let y = 0; y < PLAYGROUND_ROWS; y++) {
+            for (let x = 0; x < PLAYGROUND_COLUMNS; x++) {
+                if (this.playground.fields[y][x] !== null) {
+                    if (this.playground.fields[y][x].type === "Wall") {
+                        this.drawElement(ctx, x, y, "darkgray");
+                    } else if (
+                        this.playground.fields[y][x].type === "SoftWall"
+                    ) {
+                        this.drawElement(ctx, x, y, "gray");
+                    }
+                }
+            }
+        }
+
+        for (let i = 0; i < this.playground.players.length; i++) {
+            const player = this.playground.players[i];
+            this.drawElement(ctx, player.x, player.y, player.color);
+        }
+    }
+
+    drawElement(
+        ctx: CanvasRenderingContext2D,
+        x: number,
+        y: number,
+        color: string
+    ) {
+        ctx.fillStyle = color;
+        ctx.fillRect(
+            x * FIELD_WIDTH,
+            y * FIELD_HEIGHT,
+            FIELD_WIDTH,
+            FIELD_HEIGHT
+        );
+    }
 }
