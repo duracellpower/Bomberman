@@ -1,4 +1,12 @@
-
-canvas {
-  background: forestgreen;
+:host {
+    display: flex;
+    canvas {
+        flex: 0;
+        background: forestgreen;
+    }
+    .game-log {
+        flex: 1;
+        padding-left: 20px;
+        padding-top: 20px;
+    }
 }

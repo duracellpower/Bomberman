@@ -1,7 +1,7 @@
 export type FieldElement = {
     x: number;
     y: number;
-    type: "Wall" | "SoftWall";
+    type: "Wall" | "SoftWall" | "Bomb";
 };
 export type Player = {
     hash: string;
@@ -13,6 +13,7 @@ export type Player = {
 export type Playground = {
     fields: FieldElement[][]; // from server
     players: Player[];
+    log: string[];
 };
 /*
 [

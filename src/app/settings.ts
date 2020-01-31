@@ -1,5 +1,5 @@
-export const PLAYGROUND_ROWS = 20;
-export const PLAYGROUND_COLUMNS = 20;
+export const PLAYGROUND_ROWS = 19;
+export const PLAYGROUND_COLUMNS = 19;
 export const PLAYGROUND_WIDTH = 400;
 export const PLAYGROUND_HEIGHT = 400;
 export const FIELD_WIDTH = PLAYGROUND_WIDTH / PLAYGROUND_COLUMNS;

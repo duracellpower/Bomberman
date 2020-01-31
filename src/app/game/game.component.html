@@ -1,1 +1,4 @@
 <canvas #canvas [width]="width" [height]="height" id="game"></canvas>
+<div class="game-log" *ngIf="playground">
+    <p *ngFor="let entry of playground.log">{{entry}}</p>
+</div>
